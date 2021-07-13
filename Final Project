@@ -1,0 +1,155 @@
+USE messaging; -- access the messaging database
+
+
+-- Task One: Construct the SQL statement to add yourself to the Person table.
+INSERT INTO person (first_name,last_name)
+VALUES ("Brendan", "OConnell");
+
+
+-- Task Two: Alter the Person Table
+ALTER TABLE person ADD age INT(3);
+
+-- Task Three: Update Records in the Person Table
+UPDATE person
+SET age = 32
+WHERE person_id = 7;
+
+
+-- Task Four: Delete Records from Person Table
+DELETE FROM person
+WHERE first_name = "Diana"
+AND last_name = "Taurasi";
+
+
+-- Task Five: Alter the Contact List Table
+ALTER TABLE contact_list ADD favorite VARCHAR(10);
+
+
+-- Task Six: Update Records in the Contact List Table
+UPDATE contact_list
+SET favorite = "y"
+WHERE contact_id = 1;
+
+
+-- Task Seven: Update Records in the Contact List Table
+UPDATE contact_list
+SET favorite = "n"
+WHERE contact_id <> 1;
+
+
+-- Task Eight: Insert Records to Contact List Table 
+INSERT INTO contact_list (person_id,contact_id,favorite)
+VALUES
+	(1, 7, "y"),
+	(2, 7, "y"),
+	(4, 7, "n");
+
+
+-- Task Nine: Create the Image Table
+CREATE TABLE image (
+image_id int(8) NOT NULL auto_increment,
+image_name varchar(50) NOT NULL,
+image_location varchar(250) NOT NULL,
+PRIMARY KEY (image_id)
+) AUTO_INCREMENT = 1;
+
+
+-- Task Ten: Create the Message-Image Intersection Table
+CREATE TABLE message_image (
+message_id int(8) NOT NULL,
+image_id int(8) NOT NULL,
+PRIMARY KEY (message_id, image_id));
+
+
+-- Task Eleven: Insert Records to Image Table
+INSERT INTO image (image_name,image_location)
+VALUES
+	("2016 Olympics", "Brazil"),
+	("Thumbs Up", "Brazil"),
+	("American Flag", "Washington D.C."),
+	("Shamrock", "Ireland"),
+	("Running of the Bulls", "Spain");
+
+
+-- Task Twelve: Insert Records to Message-Image Table
+INSERT INTO message_image (message_id,image_id)
+VALUES
+	(1, 1),
+	(2, 3),
+	(4, 5),
+	(5, 2),
+	(5, 4);
+
+
+
+-- Before completing the query tasks, define foreign keys for joining tables based on the database schema provided
+ALTER TABLE contact_list
+	ADD CONSTRAINT FOREIGN KEY (person_id)
+	REFERENCES person(person_id);
+
+ALTER TABLE message
+	ADD CONSTRAINT FOREIGN KEY (sender_id)
+	REFERENCES person(person_id);
+	
+ALTER TABLE message
+	ADD CONSTRAINT FOREIGN KEY (receiver_id)
+	REFERENCES person(person_id);
+	
+ALTER TABLE message_image
+	ADD CONSTRAINT FOREIGN KEY (message_id)
+	REFERENCES message(message_id);
+
+ALTER TABLE message_image
+	ADD CONSTRAINT FOREIGN KEY (image_id)
+	REFERENCES image(image_id);
+	
+	
+	
+-- Task Thirteen: Find All of the Messages that Michael Phelps Sent
+SELECT
+    p1.first_name AS "Sender's First Name",
+    p1.last_name AS "Sender's Last Name",
+    p2.first_name AS "Receiver's First Name",
+    p2.last_name AS "Receiver's Last Name",
+    m.message_id AS "Message ID",
+    m.message AS "Message",
+    m.send_datetime AS "Message Timestamp"
+FROM
+    message AS m,
+    person AS p1,
+    person AS p2
+WHERE
+    m.sender_id = p1.person_id
+    AND
+    m.receiver_id = p2.person_id
+    AND
+    p1.person_id = 1;
+
+
+-- Task Fourteen: Find the Number of Messages Sent for Every Person
+SELECT
+    COUNT(m.message_id) AS "Count of messages",
+	p.person_id AS "Person ID",
+	p.first_name AS "First Name",
+	p.last_name	AS "Last Name"
+FROM
+    message AS m,
+    person AS p
+WHERE
+    m.sender_id = p.person_id
+GROUP BY p.person_id;
+
+
+-- Task Fifteen : Find All of the Messages that Have At Least One Image Attached Using INNER JOINs
+SELECT
+    mi.message_id AS "Message ID",
+    m.message AS Message,
+    m.send_datetime AS "Message Timestamp",
+    i.image_name AS "First Image Name",
+    i.image_location AS "First Image Location"
+FROM message_image AS mi
+JOIN message AS m
+    ON mi.message_id = m.message_id
+JOIN image AS i
+    ON mi.image_id = i.image_id
+GROUP BY mi.message_id;
